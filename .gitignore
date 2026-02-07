@@ -1,0 +1,50 @@
+# Maven build directory
+target/
+
+# Package Files
+*.jar
+*.war
+*.ear
+*.class
+
+# Maven temporary files
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+# ignore the Maven wrapper jar file, but not the properties file
+.mvn/wrapper/maven-wrapper.jar 
+
+# Eclipse IDE files
+.classpath
+.project
+.settings/
+.apt_generated/
+.factorypath
+.springBeans
+.sts4-cache
+
+# IntelliJ IDEA IDE files
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# NetBeans IDE files
+/nbproject/private/
+/build/
+/nbbuild/
+/dist/
+/nbdist/
+nb-configuration.xml
+
+# Operating System files
+.DS_Store
+Thumbs.db
+logs/
+*.log
+*.tmp
