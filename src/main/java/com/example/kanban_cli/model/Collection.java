@@ -5,7 +5,7 @@ import java.time.format.DateTimeFormatter;
 
 public class Collection {
 
-    DateTimeFormatter DATETIME = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
+    private static final DateTimeFormatter DATETIME = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
     private int id;
     private String name;

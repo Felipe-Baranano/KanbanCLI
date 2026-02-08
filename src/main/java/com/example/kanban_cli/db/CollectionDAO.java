@@ -14,7 +14,7 @@ import com.example.kanban_cli.model.Collection;
 public class CollectionDAO {
 
     private final Database database;
-    private static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
+    private static final DateTimeFormatter DATETIME = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
     private final TaskDAO taskDAO;
 
@@ -30,11 +30,11 @@ public class CollectionDAO {
 
         try (PreparedStatement pstmt = database.getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS)) {
             pstmt.setString(1, collection.getName());
-            pstmt.setString(2, collection.getCreatedAt().format(formatter));
+            pstmt.setString(2, collection.getCreatedAt().format(DATETIME));
             pstmt.setBoolean(3, collection.getIsActive());
 
             if (collection.getUpdatedAt() != null) {
-                pstmt.setString(4, collection.getUpdatedAt().format(formatter));
+                pstmt.setString(4, collection.getUpdatedAt().format(DATETIME));
             } else {
                 pstmt.setString(4, null);
             }
@@ -72,6 +72,7 @@ public class CollectionDAO {
             while (rs.next()) {
                 collections.add(mapResultSetToCollection(rs));
             }
+
         } catch (SQLException e) {
             System.err.println("Error getting all collections: " + e.getMessage());
         }
@@ -142,6 +143,7 @@ public class CollectionDAO {
             if (rs.next()) {
                 return mapResultSetToCollection(rs);
             }
+
         } catch (SQLException e) {
             System.err.println("Error getting active collection: " + e.getMessage());
         }
@@ -151,6 +153,7 @@ public class CollectionDAO {
     // Disable all collections (set is_active to false)
     public void clearAllActive() {
         String sql = "UPDATE collections SET is_active = 0";
+        
         try (PreparedStatement pstmt = database.getConnection().prepareStatement(sql)) {
             pstmt.executeUpdate();
         } catch (SQLException e) {
@@ -162,7 +165,7 @@ public class CollectionDAO {
     private Collection mapResultSetToCollection(ResultSet rs) throws SQLException {
         Collection collection = new Collection(rs.getString("name"));
         collection.setId(rs.getInt("id"));
-        collection.setCreatedAt(LocalDateTime.parse(rs.getString("created_at"), formatter));
+        collection.setCreatedAt(LocalDateTime.parse(rs.getString("created_at"), DATETIME));
         collection.setTasks(taskDAO.getTaskCountByCollectionId(collection.getId()));
         collection.setIsActive(rs.getBoolean("is_active"));
         return collection;
