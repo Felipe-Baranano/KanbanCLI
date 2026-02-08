@@ -1,5 +1,7 @@
 package com.example.kanban_cli;
 
+import com.example.kanban_cli.db.Database;
+
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 
@@ -20,6 +22,9 @@ public class App implements Runnable {
 
     public static void main(String[] args) {
         int exitCode = new CommandLine(new App()).execute(args);
+        Database db = Database.getInstance(); // Test database connection/setup
+        db.close();
         System.exit(exitCode);
+
     }
 }
