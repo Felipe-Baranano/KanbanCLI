@@ -12,6 +12,7 @@ import picocli.CommandLine.Command;
         subcommands = {
                 com.example.kanban_cli.command.UseCommand.class,
                 com.example.kanban_cli.command.NewCommand.class,
+                com.example.kanban_cli.command.ListCommand.class,
         })
 public class App implements Runnable {
 
