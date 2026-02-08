@@ -15,7 +15,7 @@ public class Context {
     }
 
     public static boolean hasActiveCollection() {
-        return activeCollection != null;
+        return getActiveCollection() != null;
     }
 
     private static void loadActiveCollection() {

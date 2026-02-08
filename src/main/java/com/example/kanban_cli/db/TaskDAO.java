@@ -20,18 +20,27 @@ public class TaskDAO {
     }
 
     // CRUD operations for Task
-    
     public void createTask(Task task) {
         String sql = "INSERT INTO tasks (name, status, due_date, created_at, collection_id) VALUES (?, ?, ?, ?, ?)";
+
+        LocalDateTime now = LocalDateTime.now();
 
         try (PreparedStatement pstmt = database.getConnection().prepareStatement(sql)) {
             pstmt.setString(1, task.getName());
             pstmt.setString(2, task.getStatus());
             pstmt.setString(3, task.getDueDate() != null ? task.getDueDate().format(DATETIME) : null);
-            pstmt.setString(4, task.getCreatedAt().format(DATETIME));
+            pstmt.setString(4, now.format(DATETIME));
             pstmt.setInt(5, task.getCollectionId());
 
-            pstmt.executeUpdate();
+            int rowsAffected = pstmt.executeUpdate();
+
+            if (rowsAffected > 0) {
+                CollectionDAO collectionDAO = new CollectionDAO();
+                collectionDAO.updateUpdatedAt(task.getCollectionId(), now);
+
+            } else {
+                System.err.println("Failed to create task '" + task.getName() + "'.");
+            }
 
         } catch (SQLException e) {
             System.err.println("Error creating task: " + e.getMessage());
@@ -39,7 +48,7 @@ public class TaskDAO {
     }
 
     public Task getTaskByName(String name) {
-        String sql = "SELECT * FROM tasks WHERE name = ? AND collection_id = ?";
+        String sql = "SELECT * FROM tasks WHERE LOWER(name) = LOWER(?) AND collection_id = ?";
 
         try (PreparedStatement pstmt = database.getConnection().prepareStatement(sql)) {
             pstmt.setString(1, name.trim().toLowerCase());
@@ -75,7 +84,7 @@ public class TaskDAO {
     }
 
     public List<Task> getTasksByStatus(String status) {
-        String sql = "SELECT * FROM tasks WHERE status = ? AND collection_id = ? ORDER BY created_at DESC";
+        String sql = "SELECT * FROM tasks WHERE LOWER(status) = LOWER(?) AND collection_id = ? ORDER BY created_at DESC";
         List<Task> tasks = new ArrayList<>();
 
         try (PreparedStatement pstmt = database.getConnection().prepareStatement(sql)) {

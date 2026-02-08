@@ -10,7 +10,8 @@ import picocli.CommandLine.Command;
         mixinStandardHelpOptions = true,
         version = "KanbanCLI 1.0.0",
         subcommands = {
-            com.example.kanban_cli.command.UseCommand.class
+                com.example.kanban_cli.command.UseCommand.class,
+                com.example.kanban_cli.command.NewCommand.class,
         })
 public class App implements Runnable {
 

@@ -24,7 +24,6 @@ public class CollectionDAO {
     }
 
     // CRUD operations for Collection
-    
     public void createCollection(Collection collection) {
         String sql = "INSERT INTO collections (name, created_at, is_active, updated_at) VALUES (?, ?, ?, ?)";
 
@@ -45,9 +44,9 @@ public class CollectionDAO {
             System.err.println("Error creating collection: " + e.getMessage());
         }
     }
-    
+
     public Collection getCollectionByName(String name) {
-        String sql = "SELECT * FROM collections WHERE name = ?";
+        String sql = "SELECT * FROM collections WHERE LOWER(name) = LOWER(?)";
 
         try (PreparedStatement pstmt = database.getConnection().prepareStatement(sql)) {
             pstmt.setString(1, name.trim().toLowerCase());
@@ -93,13 +92,13 @@ public class CollectionDAO {
     }
 
     public void renameCollection(String oldName, String newName) {
-        Collection existing = getCollectionByName(newName.trim().toLowerCase());
+        Collection existing = getCollectionByName(newName);
         if (existing != null) {
             System.err.println("Error: A collection with the name \"" + newName + "\" already exists.");
             return;
         }
 
-        String sql = "UPDATE collections SET name = ? WHERE name = ?";
+        String sql = "UPDATE collections SET name = ? WHERE LOWER(name) = LOWER(?)";
 
         try (PreparedStatement pstmt = database.getConnection().prepareStatement(sql)) {
             pstmt.setString(1, newName);
@@ -115,17 +114,16 @@ public class CollectionDAO {
     // Set a collection as active (is_active = true) and reset others to inactive
     public void updateIsActive(boolean bool, String name) {
         String resetSql = "UPDATE collections SET is_active = 0";
-        String updateSql = "UPDATE collections SET is_active = ? WHERE name = ?";
+        String updateSql = "UPDATE collections SET is_active = ? WHERE LOWER(name) = LOWER(?)";
 
-        try (PreparedStatement resetPstmt = database.getConnection().prepareStatement(resetSql);
-             PreparedStatement updatePstmt = database.getConnection().prepareStatement(updateSql)) {
+        try (PreparedStatement resetPstmt = database.getConnection().prepareStatement(resetSql); PreparedStatement updatePstmt = database.getConnection().prepareStatement(updateSql)) {
 
             // First, reset all collections to inactive
             resetPstmt.executeUpdate();
 
             // Then, set the specified collection to active
             updatePstmt.setBoolean(1, bool);
-            updatePstmt.setString(2, name);
+            updatePstmt.setString(2, name.trim().toLowerCase());
             updatePstmt.executeUpdate();
 
         } catch (SQLException e) {
@@ -153,11 +151,24 @@ public class CollectionDAO {
     // Disable all collections (set is_active to false)
     public void clearAllActive() {
         String sql = "UPDATE collections SET is_active = 0";
-        
+
         try (PreparedStatement pstmt = database.getConnection().prepareStatement(sql)) {
             pstmt.executeUpdate();
         } catch (SQLException e) {
             System.err.println("Error clearing active collections: " + e.getMessage());
+        }
+    }
+
+    // Update the updated_at timestamp for a collection
+    public void updateUpdatedAt(int collectionId, LocalDateTime dateTime) {
+        String sql = "UPDATE collections SET updated_at = ? WHERE id = ?";
+
+        try (PreparedStatement pstmt = database.getConnection().prepareStatement(sql)) {
+            pstmt.setString(1, dateTime.format(DATETIME));
+            pstmt.setInt(2, collectionId);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            System.err.println("Error updating collection updated_at: " + e.getMessage());
         }
     }
 
@@ -166,6 +177,10 @@ public class CollectionDAO {
         Collection collection = new Collection(rs.getString("name"));
         collection.setId(rs.getInt("id"));
         collection.setCreatedAt(LocalDateTime.parse(rs.getString("created_at"), DATETIME));
+        String updatedAtStr = rs.getString("updated_at");
+        if (updatedAtStr != null) {
+            collection.setUpdatedAt(LocalDateTime.parse(updatedAtStr, DATETIME));
+        }
         collection.setTasks(taskDAO.getTaskCountByCollectionId(collection.getId()));
         collection.setIsActive(rs.getBoolean("is_active"));
         return collection;
