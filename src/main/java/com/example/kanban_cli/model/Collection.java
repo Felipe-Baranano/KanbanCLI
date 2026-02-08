@@ -19,6 +19,7 @@ public class Collection {
         this.createdAt = LocalDateTime.now();
     }
 
+    // Getters and Setters with validations
     public int getId() {
         return id;
     }
@@ -77,6 +78,7 @@ public class Collection {
         this.isActive = isActive;
     }
     
+    // Override toString for better display in CLI
     @Override
     public String toString() {
 
