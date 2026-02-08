@@ -40,6 +40,7 @@ public class Database {
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 name TEXT NOT NULL UNIQUE,
                 created_at TEXT NOT NULL,
+                updated_at TEXT,        
                 is_active BOOLEAN NOT NULL
             )
             """;

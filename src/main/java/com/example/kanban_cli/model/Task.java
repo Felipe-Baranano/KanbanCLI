@@ -19,7 +19,7 @@ public class Task {
     public Task(String name) {
         this.name = name;
         this.status = "todo";
-        this.createdAt = java.time.LocalDateTime.now();
+        this.createdAt = LocalDateTime.now();
     }
 
     // Getters and Setters with validation
@@ -29,7 +29,7 @@ public class Task {
     }
 
     public void setId(Integer id) {
-        if (id != null && id <= 0) throw new IllegalArgumentException("id must be positive");
+        if (id != null && id <= 0) throw new IllegalArgumentException("Id must be positive");
         this.id = id;
     }
 
@@ -65,7 +65,7 @@ public class Task {
 
     public void setDueDate(LocalDateTime dueDate) {
         if (dueDate != null && this.createdAt != null && dueDate.isBefore(this.createdAt)) {
-            throw new IllegalArgumentException("dueDate cannot be before createdAt");
+            throw new IllegalArgumentException("Due date cannot be before created at");
         }
         this.dueDate = dueDate;
     }
@@ -85,7 +85,7 @@ public class Task {
 
     public void setUpdatedAt(LocalDateTime updatedAt) {
         if (updatedAt != null && this.createdAt != null && updatedAt.isBefore(this.createdAt)) {
-            throw new IllegalArgumentException("updatedAt cannot be before createdAt");
+            throw new IllegalArgumentException("Updated at cannot be before created at");
         }
         this.updatedAt = updatedAt;
     }
@@ -96,7 +96,7 @@ public class Task {
 
     public void setCollectionId(Integer collectionId) {
         if (collectionId == null || collectionId <= 0)
-            throw new IllegalArgumentException("collectionId must be positive");
+            throw new IllegalArgumentException("CollectionId must be positive");
         this.collectionId = collectionId;
     }
 
