@@ -9,7 +9,9 @@ import picocli.CommandLine.Command;
         description = "KanbanCLI - Manage your tasks",
         mixinStandardHelpOptions = true,
         version = "KanbanCLI 1.0.0",
-        subcommands = {})
+        subcommands = {
+            com.example.kanban_cli.command.UseCommand.class
+        })
 public class App implements Runnable {
 
     @Override
