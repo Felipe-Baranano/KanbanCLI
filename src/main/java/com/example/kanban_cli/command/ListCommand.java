@@ -100,7 +100,7 @@ public class ListCommand implements Runnable {
 
             // Print tasks grouped by status
             printTasksByStatus(allTasks, "todo", "Todo");
-            printTasksByStatus(allTasks, "in-progress", "In-progress");
+            printTasksByStatus(allTasks, "in_progress", "In-progress");
             printTasksByStatus(allTasks, "done", "Done");
         }
     }

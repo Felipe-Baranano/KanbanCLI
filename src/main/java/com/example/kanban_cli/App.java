@@ -15,7 +15,8 @@ import picocli.CommandLine.Command;
                 com.example.kanban_cli.command.ListCommand.class,
                 com.example.kanban_cli.command.DeleteCommand.class,
                 com.example.kanban_cli.command.DueDateCommand.class,
-                com.example.kanban_cli.command.RenameCommand.class
+                com.example.kanban_cli.command.RenameCommand.class,
+                com.example.kanban_cli.command.MoveCommand.class
         })
 public class App implements Runnable {
 

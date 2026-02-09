@@ -155,6 +155,27 @@ public class TaskDAO {
         }
     }
 
+    public int moveAllByStatus(int collectionId, String fromStatus, String toStatus) {
+        String sql = """
+        UPDATE tasks
+        SET status = ?
+        WHERE collection_id = ?
+          AND status = ?
+    """;
+
+        try (PreparedStatement pstmt = database.getConnection().prepareStatement(sql)) {
+            pstmt.setString(1, toStatus);
+            pstmt.setInt(2, collectionId);
+            pstmt.setString(3, fromStatus);
+
+            return pstmt.executeUpdate();
+
+        } catch (SQLException e) {
+            System.err.println("Error moving tasks: " + e.getMessage());
+            return 0;
+        }
+    }
+
     public void deleteTask(int id) {
         String sql = "DELETE FROM tasks WHERE id = ?";
 

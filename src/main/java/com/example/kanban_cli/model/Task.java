@@ -52,9 +52,9 @@ public class Task {
         if (status == null || status.trim().isEmpty()) {
             throw new IllegalArgumentException("Status must not be null or empty");
         } else if (!status.equalsIgnoreCase("todo") &&
-                   !status.equalsIgnoreCase("in-progress") &&
+                   !status.equalsIgnoreCase("in_progress") &&
                    !status.equalsIgnoreCase("done")) {
-            throw new IllegalArgumentException("Status must be one of: todo, in-progress, done");
+            throw new IllegalArgumentException("Status must be one of: todo, in_progress, done");
         }
         this.status = status.trim().toLowerCase();
     }
