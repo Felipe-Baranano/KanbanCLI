@@ -33,7 +33,6 @@ public class ListCommand implements Runnable {
     private static final List<String> VALID_STATUSES = List.of("todo", "in-progress", "done");
 
     @Override
-    @SuppressWarnings("ConvertToStringSwitch")
     public void run() {
         try {
 
@@ -41,7 +40,7 @@ public class ListCommand implements Runnable {
             if (status != null && !VALID_STATUSES.contains(status.toLowerCase().trim())) {
                 System.err.println(
                         "Invalid status: " + status
-                                + ". Use one of: todo, in-progress, done");
+                        + ". Use one of: todo, in-progress, done");
                 return;
             }
 
@@ -66,6 +65,7 @@ public class ListCommand implements Runnable {
 
         if (collections.isEmpty()) {
             System.out.println("No collections found.");
+            System.out.println("Create a new collection using the 'new collection <name>' command.");
         } else {
             System.out.println("Collections:");
             collections.forEach(System.out::println);

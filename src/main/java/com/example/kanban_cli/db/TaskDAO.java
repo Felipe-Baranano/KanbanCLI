@@ -8,6 +8,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.example.kanban_cli.Context;
 import com.example.kanban_cli.model.Task;
 
 public class TaskDAO {
@@ -52,7 +53,7 @@ public class TaskDAO {
 
         try (PreparedStatement pstmt = database.getConnection().prepareStatement(sql)) {
             pstmt.setString(1, name.trim().toLowerCase());
-            pstmt.setInt(2, com.example.kanban_cli.Context.getActiveCollection().getId());
+            pstmt.setInt(2, Context.getActiveCollection().getId());
             ResultSet rs = pstmt.executeQuery();
 
             if (rs.next()) {
@@ -70,7 +71,7 @@ public class TaskDAO {
         List<Task> tasks = new ArrayList<>();
 
         try (PreparedStatement pstmt = database.getConnection().prepareStatement(sql)) {
-            pstmt.setInt(1, com.example.kanban_cli.Context.getActiveCollection().getId());
+            pstmt.setInt(1, Context.getActiveCollection().getId());
             ResultSet rs = pstmt.executeQuery();
 
             while (rs.next()) {
@@ -89,7 +90,7 @@ public class TaskDAO {
 
         try (PreparedStatement pstmt = database.getConnection().prepareStatement(sql)) {
             pstmt.setString(1, status.trim().toLowerCase());
-            pstmt.setInt(2, com.example.kanban_cli.Context.getActiveCollection().getId());
+            pstmt.setInt(2, Context.getActiveCollection().getId());
             ResultSet rs = pstmt.executeQuery();
 
             while (rs.next()) {
@@ -164,6 +165,28 @@ public class TaskDAO {
 
         } catch (SQLException e) {
             System.err.println("Error deleting task: " + e.getMessage());
+        }
+    }
+
+    public void deleteByCollectionId(int collectionId) {
+        String sql = "DELETE FROM tasks WHERE collection_id = ?";
+
+        try (PreparedStatement pstmt = database.getConnection().prepareStatement(sql)) {
+
+            pstmt.setInt(1, collectionId);
+            pstmt.executeUpdate();
+
+        } catch (SQLException e) {
+            System.err.println(
+                    "Error deleting tasks from collection: " + e.getMessage());
+        }
+    }
+
+    public void deleteTasksByStatus(String status) {
+        List<Task> tasks = getTasksByStatus(status);
+
+        for (Task task : tasks) {
+            deleteTask(task.getId());
         }
     }
 
