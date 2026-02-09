@@ -94,6 +94,7 @@ public class NewCommand implements Runnable {
             System.err.println("Task with name '" + taskName + "' already exists in this collection.");
             return;
         }
+        
         Task task = new Task(taskName);
         task.setCollectionId(Context.getActiveCollection().getId());
 

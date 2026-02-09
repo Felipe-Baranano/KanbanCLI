@@ -10,6 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import com.example.kanban_cli.model.Collection;
+import com.example.kanban_cli.model.Task;
 
 public class CollectionDAO {
 
@@ -108,6 +109,38 @@ public class CollectionDAO {
 
         } catch (SQLException e) {
             System.err.println("Error renaming collection: " + e.getMessage());
+        }
+    }
+
+    public void updateCollection(Collection collection) {
+        String sql = "UPDATE collections SET name = ?, updated_at = ? WHERE id = ?";
+
+        try (PreparedStatement pstmt = database.getConnection().prepareStatement(sql)) {
+            pstmt.setString(1, collection.getName());
+            pstmt.setString(2, LocalDateTime.now().format(DATETIME));
+            pstmt.setInt(3, collection.getId());
+
+            pstmt.executeUpdate();
+
+        } catch (SQLException e) {
+            System.err.println("Error updating collection: " + e.getMessage());
+        }
+    }
+
+    public void updateTask(Task task) {
+        String sql = "UPDATE tasks SET name = ?, status = ?, due_date = ?, updated_at = ? WHERE id = ?";
+
+        try (PreparedStatement pstmt = database.getConnection().prepareStatement(sql)) {
+            pstmt.setString(1, task.getName());
+            pstmt.setString(2, task.getStatus());
+            pstmt.setString(3, task.getDueDate() != null ? task.getDueDate().format(DATETIME) : null);
+            pstmt.setString(4, LocalDateTime.now().format(DATETIME));
+            pstmt.setInt(5, task.getId());
+
+            pstmt.executeUpdate();
+
+        } catch (SQLException e) {
+            System.err.println("Error updating task: " + e.getMessage());
         }
     }
 
