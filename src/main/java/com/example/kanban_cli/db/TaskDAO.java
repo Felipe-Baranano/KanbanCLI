@@ -145,7 +145,7 @@ public class TaskDAO {
             pstmt.setString(1, task.getName());
             pstmt.setString(2, task.getStatus());
             pstmt.setString(3, task.getDueDate() != null ? task.getDueDate().format(DATETIME) : null);
-            pstmt.setString(4, task.getUpdatedAt() != null ? task.getUpdatedAt().format(DATETIME) : null);
+            pstmt.setString(4, LocalDateTime.now().format(DATETIME));
             pstmt.setInt(5, task.getId());
 
             pstmt.executeUpdate();

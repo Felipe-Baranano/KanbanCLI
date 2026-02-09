@@ -115,7 +115,7 @@ public class Task {
         }
 
         if (updatedAt != null) {
-            sb.append("\n └─ Updated at: ").append(updatedAt.format(DATETIME));
+            sb.append("\n ├─ Updated at: ").append(updatedAt.format(DATETIME));
         }
 
         sb.append("\n └─ Created at: ").append(createdAt.format(DATETIME));

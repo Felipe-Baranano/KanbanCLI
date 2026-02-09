@@ -109,6 +109,12 @@ public class NewCommand implements Runnable {
                 DateTimeFormatter DATE = DateTimeFormatter.ofPattern("dd/MM/yyyy");
                 LocalDate date = LocalDate.parse(dueDate, DATE);
                 LocalDateTime parsedDate = date.atStartOfDay();
+
+                if (parsedDate.isBefore(task.getCreatedAt())) {
+                    System.err.println("Due date cannot be before the task creation date.");
+                    return;
+                }
+
                 task.setDueDate(parsedDate);
 
             } catch (Exception e) {
