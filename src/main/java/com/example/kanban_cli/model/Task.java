@@ -23,13 +23,14 @@ public class Task {
     }
 
     // Getters and Setters with validation
-
     public int getId() {
         return id;
     }
 
     public void setId(Integer id) {
-        if (id != null && id <= 0) throw new IllegalArgumentException("Id must be positive");
+        if (id != null && id <= 0) {
+            throw new IllegalArgumentException("Id must be positive");
+        }
         this.id = id;
     }
 
@@ -51,9 +52,9 @@ public class Task {
     public void setStatus(String status) {
         if (status == null || status.trim().isEmpty()) {
             throw new IllegalArgumentException("Status must not be null or empty");
-        } else if (!status.equalsIgnoreCase("todo") &&
-                   !status.equalsIgnoreCase("in_progress") &&
-                   !status.equalsIgnoreCase("done")) {
+        } else if (!status.equalsIgnoreCase("todo")
+                && !status.equalsIgnoreCase("in_progress")
+                && !status.equalsIgnoreCase("done")) {
             throw new IllegalArgumentException("Status must be one of: todo, in_progress, done");
         }
         this.status = status.trim().toLowerCase();
@@ -71,7 +72,9 @@ public class Task {
     }
 
     public LocalDateTime getCreatedAt() {
-        if (createdAt == null) createdAt = LocalDateTime.now();
+        if (createdAt == null) {
+            createdAt = LocalDateTime.now();
+        }
         return createdAt;
     }
 
@@ -95,12 +98,18 @@ public class Task {
     }
 
     public void setCollectionId(Integer collectionId) {
-        if (collectionId == null || collectionId <= 0)
+        if (collectionId == null || collectionId <= 0) {
             throw new IllegalArgumentException("CollectionId must be positive");
+        }
         this.collectionId = collectionId;
     }
 
-    
+    public boolean isOverdue() {
+        return dueDate != null
+                && LocalDateTime.now().isAfter(dueDate)
+                && !"done".equalsIgnoreCase(status);
+    }
+
     // Override toString for better display in CLI
     @Override
     public String toString() {
@@ -112,14 +121,17 @@ public class Task {
 
         if (dueDate != null) {
             sb.append("\n ├─ Due Date:   ").append(dueDate.format(DATE));
+            if (isOverdue()) {
+                sb.append(" (EXPIRED)");
+            }
         }
-
+    
         if (updatedAt != null) {
             sb.append("\n ├─ Updated at: ").append(updatedAt.format(DATETIME));
         }
 
-        sb.append("\n └─ Created at: ").append(createdAt.format(DATETIME));
 
+        sb.append("\n └─ Created at: ").append(createdAt.format(DATETIME));
 
         sb.append("\n");
 

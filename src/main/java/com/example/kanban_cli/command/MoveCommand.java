@@ -66,7 +66,7 @@ public class MoveCommand implements Runnable {
 
             if (!confirm(
                 "Move ALL tasks from '" + fromStatus +
-                "' to '" + toStatus + "'? (y/N): "
+                "' to '" + toStatus + "'? (y/n): "
             )) {
                 System.out.println("Operation cancelled.");
                 return;
@@ -128,13 +128,13 @@ public class MoveCommand implements Runnable {
         }
     }
 
-    // ===== Helpers =====
+    // Helper methods
 
     private TaskStatus parseStatus(String value) {
         if (value == null) return null;
 
         try {
-            return TaskStatus.valueOf(value.trim().toUpperCase());
+            return TaskStatus.valueOf(value.trim().toLowerCase());
         } catch (IllegalArgumentException e) {
             return null;
         }
@@ -155,9 +155,9 @@ public class MoveCommand implements Runnable {
     }
 
     public enum TaskStatus {
-        TODO,
-        IN_PROGRESS,
-        DONE;
+        todo,
+        in_progress,
+        done;
     }
 }
 

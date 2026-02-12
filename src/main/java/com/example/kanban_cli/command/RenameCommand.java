@@ -108,6 +108,11 @@ public class RenameCommand implements Runnable {
             return;
         }
 
+        if (newName.equals(currentName)) {
+            System.err.println("New name cannot be the same as the current name.");
+            return;
+        }
+
         if (taskDAO.getTaskByName(newName) != null) {
             System.err.println("A task with name '" + newName + "' already exists in this collection.");
             return;

@@ -19,12 +19,12 @@ public class UseCommand implements Runnable {
             arity = "1..*",
             description = "Collection name"
     )
-    private List<String> collectionNameParts;
+    private List<String> nameParts;
 
     @Override
     public void run() {
         try {
-            String collectionName = String.join(" ", collectionNameParts);
+            String collectionName = String.join(" ", nameParts);
             CollectionDAO collectionDAO = new CollectionDAO();
             Collection collection = collectionDAO.getCollectionByName(collectionName);
 

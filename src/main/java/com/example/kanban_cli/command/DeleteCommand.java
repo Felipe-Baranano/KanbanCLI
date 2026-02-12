@@ -2,6 +2,7 @@ package com.example.kanban_cli.command;
 
 import java.util.List;
 import java.util.Scanner;
+import java.util.Set;
 
 import com.example.kanban_cli.Context;
 import com.example.kanban_cli.db.CollectionDAO;
@@ -19,6 +20,9 @@ import picocli.CommandLine.Parameters;
 )
 public class DeleteCommand implements Runnable {
 
+    private static final Set<String> VALID_STATUSES
+            = Set.of("todo", "in_progress", "done");
+
     @Option(
             names = {"-a", "--all"},
             description = "Delete all items of the given type"
@@ -27,13 +31,13 @@ public class DeleteCommand implements Runnable {
 
     @Option(
             names = {"-s", "--status"},
-            description = "Delete tasks with the given status (TODO, IN_PROGRESS, DONE). Only applies when type is 'task' and --all is specified."
+            description = "Filter tasks by status (todo, in_progress, done). Only valid with 'task --all'."
     )
-    private TaskStatus status;
+    private String status;
 
     @Parameters(
             index = "0",
-            description = "Type: task or collection"
+            description = "Type to delete: task or collection"
     )
     private String type;
 
@@ -51,9 +55,9 @@ public class DeleteCommand implements Runnable {
         try {
             switch (type.toLowerCase()) {
                 case "task" ->
-                    handleTaskDelete();
+                    deleteTask();
                 case "collection" ->
-                    handleCollectionDelete();
+                    deleteCollection();
                 default ->
                     System.err.println("Invalid type. Use 'task' or 'collection'.");
             }
@@ -62,23 +66,24 @@ public class DeleteCommand implements Runnable {
         }
     }
 
-    private void handleCollectionDelete() {
+    // collection deletion logic
+    private void deleteCollection() {
         CollectionDAO collectionDAO = new CollectionDAO();
         TaskDAO taskDAO = new TaskDAO();
 
-        // If --all is specified, confirm and delete all collections and their tasks
-        if (all) {
+        // Validation checks
+        if (status != null) {
+            System.err.println("Option --status is not applicable when deleting collections.");
+            return;
+        }
 
-            if (status != null) {
-                System.err.println("Status filter is not applicable when deleting collections. Ignoring --status option.");
-            }
+        if (all) {
             if (!confirm("Delete ALL collections and their tasks? (y/n): ")) {
                 System.out.println("Operation cancelled.");
                 return;
             }
 
-            List<Collection> collections = collectionDAO.getAllCollections();
-            for (Collection c : collections) {
+            for (Collection c : collectionDAO.getAllCollections()) {
                 taskDAO.deleteByCollectionId(c.getId());
                 collectionDAO.deleteCollection(c.getId());
             }
@@ -87,21 +92,17 @@ public class DeleteCommand implements Runnable {
             return;
         }
 
-        // If not deleting all, collection name is required
-        if (!all && (nameParts == null || nameParts.isEmpty())) {
-            System.err.println("Collection name is required.");
+        String name = getNameOrFail("Collection name is required.");
+        if (name == null) {
             return;
         }
 
-        String name = String.join(" ", nameParts);
         Collection collection = collectionDAO.getCollectionByName(name);
-
         if (collection == null) {
             System.err.println("Collection '" + name + "' not found.");
             return;
         }
 
-        // If the collection is active, warn the user that it will be deleted
         if (!confirm("Delete collection '" + name + "' and all its tasks? (y/n): ")) {
             System.out.println("Operation cancelled.");
             return;
@@ -112,7 +113,10 @@ public class DeleteCommand implements Runnable {
         System.out.println("Collection '" + name + "' deleted.");
     }
 
-    private void handleTaskDelete() {
+    // task deletion logic
+    private void deleteTask() {
+
+        // Validation checks
         if (!Context.hasActiveCollection()) {
             System.err.println("No active collection. Use 'use <collection>' first.");
             return;
@@ -121,35 +125,18 @@ public class DeleteCommand implements Runnable {
         TaskDAO taskDAO = new TaskDAO();
 
         if (all) {
-
-            // If status filter is provided, confirm and delete tasks with that status
-            if (status != null) {
-                if (!confirm("Delete ALL tasks with status " + status + "? (y/n): ")) {
-                    return;
-                }
-                taskDAO.deleteTasksByStatus(status.name());
-                System.out.println("All tasks with status " + status + " deleted.");
-            } else { // If no status filter, confirm and delete all tasks in the active collection
-                if (!confirm("Delete ALL tasks? (y/n): ")) {
-                    return;
-                }
-                taskDAO.deleteByCollectionId(Context.getActiveCollection().getId());
-                System.out.println("All tasks deleted.");
-            }
+            deleteAllTasks(taskDAO);
             return;
         }
 
-        // If not deleting all, task name is required
-        if (!all && (nameParts == null || nameParts.isEmpty())) {
-            System.err.println("Task name is required.");
+        String name = getNameOrFail("Task name is required.");
+        if (name == null) {
             return;
         }
 
-        String name = String.join(" ", nameParts);
         Task task = taskDAO.getTaskByName(name);
-
         if (task == null) {
-            System.err.println("Task '" + name + "' not found.");
+            System.err.println("Task with name '" + name + "' not found in the active collection.");
             return;
         }
 
@@ -157,7 +144,53 @@ public class DeleteCommand implements Runnable {
         System.out.println("Task '" + name + "' deleted.");
     }
 
-    // Helper method to confirm destructive actions
+    // Delete all tasks or all tasks with a specific status
+    private void deleteAllTasks(TaskDAO taskDAO) {
+        if (status != null) {
+            String normalizedStatus = normalizeStatus(status);
+            if (normalizedStatus == null) {
+                return;
+            }
+
+            if (!confirm("Delete ALL tasks with status " + normalizedStatus + "? (y/n): ")) {
+                System.out.println("Operation cancelled.");
+                return;
+            }
+
+            taskDAO.deleteTasksByStatus(normalizedStatus);
+            System.out.println("All tasks with status " + normalizedStatus + " deleted.");
+            return;
+        }
+
+        if (!confirm("Delete ALL tasks in the current collection? (y/n): ")) {
+            System.out.println("Operation cancelled.");
+            return;
+        }
+
+        taskDAO.deleteByCollectionId(Context.getActiveCollection().getId());
+        System.out.println("All tasks deleted.");
+    }
+
+    // Helper methods
+    
+    private String normalizeStatus(String value) {
+        String normalized = value.trim().toLowerCase();
+
+        if (!VALID_STATUSES.contains(normalized)) {
+            System.err.println("Invalid status. Use: todo, in_progress, done.");
+            return null;
+        }
+        return normalized;
+    }
+
+    private String getNameOrFail(String errorMessage) {
+        if (nameParts == null || nameParts.isEmpty()) {
+            System.err.println(errorMessage);
+            return null;
+        }
+        return String.join(" ", nameParts);
+    }
+
     private boolean confirm(String message) {
         while (true) {
             System.out.print(message);
@@ -170,11 +203,5 @@ public class DeleteCommand implements Runnable {
                 return true;
             }
         }
-    }
-
-    public enum TaskStatus {
-        TODO,
-        IN_PROGRESS,
-        DONE;
     }
 }
