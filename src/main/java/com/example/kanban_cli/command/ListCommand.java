@@ -1,6 +1,7 @@
 package com.example.kanban_cli.command;
 
 import java.util.List;
+import java.util.Set;
 
 import com.example.kanban_cli.Context;
 import com.example.kanban_cli.db.CollectionDAO;
@@ -18,109 +19,125 @@ import picocli.CommandLine.Parameters;
 )
 public class ListCommand implements Runnable {
 
+    private static final Set<String> VALID_STATUSES
+            = Set.of("todo", "in_progress", "done");
+
     @Parameters(
             index = "0",
-            description = "Type: 'collection' or 'task'"
+            description = "Type to list: collection or task"
     )
     private String type;
 
     @Option(
             names = {"-s", "--status"},
-            description = "Filter by status (todo ,doing , done)"
+            description = "Filter tasks by status (todo, in_progress, done)"
     )
     private String status;
-
-    private static final List<String> VALID_STATUSES = List.of("todo", "in-progress", "done");
 
     @Override
     public void run() {
         try {
-
-            // Validate status if provided
-            if (status != null && !VALID_STATUSES.contains(status.toLowerCase().trim())) {
-                System.err.println(
-                        "Invalid status: " + status
-                        + ". Use one of: todo, in-progress, done");
-                return;
-            }
-
-            // Determine what to list based on the type parameter
             switch (type.toLowerCase().trim()) {
                 case "collection" ->
-                    handleCollections();
+                    listCollections();
                 case "task" ->
-                    handleTasks();
+                    listTasks();
                 default ->
-                    System.err.println("Invalid type. Use 'collection' or 'task'");
+                    System.err.println("Invalid type. Use 'collection' or 'task'.");
             }
-
         } catch (Exception e) {
             System.err.println("Error listing: " + e.getMessage());
         }
     }
 
-    private void handleCollections() {
+    // Collection listing logic
+    private void listCollections() {
         CollectionDAO collectionDAO = new CollectionDAO();
         List<Collection> collections = collectionDAO.getAllCollections();
 
         if (collections.isEmpty()) {
             System.out.println("No collections found.");
-            System.out.println("Create a new collection using the 'new collection <name>' command.");
-        } else {
-            System.out.println("Collections:");
-            collections.forEach(System.out::println);
-        }
-    }
-
-    private void handleTasks() {
-        // Check if there is an active collection
-        if (!Context.hasActiveCollection()) {
-            System.err.println("No active collection. Use 'use <collection-name>' first.");
+            System.out.println("Create one using: kanban new collection <name>");
             return;
         }
 
-        // Fetch tasks from the active collection
-        TaskDAO taskDAO = new TaskDAO();
-        List<Task> allTasks = taskDAO.getAllTasks();
-        List<Task> allTasksByStatus = (status != null && !status.isBlank())
-                ? taskDAO.getTasksByStatus(status.toLowerCase().trim())
-                : null;
-
-        int taskCount = (allTasksByStatus != null) ? allTasksByStatus.size() : allTasks.size();
-
-        System.out.println(
-                "All tasks in collection '" + Context.getActiveCollection().getName()
-                + "': (" + taskCount + " Tasks)\n");
-
-        if (status != null) {
-            System.out.println("Filtered by status: " + status + "\n");
-            printTasksByStatus(allTasks, status,
-                    status.substring(0, 1).toUpperCase() + status.substring(1).toLowerCase());
-        } else {
-
-            // Print tasks grouped by status
-            printTasksByStatus(allTasks, "todo", "Todo");
-            printTasksByStatus(allTasks, "in_progress", "In-progress");
-            printTasksByStatus(allTasks, "done", "Done");
-        }
+        System.out.println("Collections:");
+        collections.forEach(c -> System.out.println(" - " + c.getName()));
     }
 
-    // Method to print tasks by status
-    private void printTasksByStatus(List<Task> tasks, String statusKey, String statusLabel) {
-        System.out.println("-- " + statusLabel + ":");
+    // Task listing logic with optional status filtering
+    private void listTasks() {
+        if (!Context.hasActiveCollection()) {
+            System.err.println("No active collection. Use 'use <collection>' first.");
+            return;
+        }
+
+        TaskDAO taskDAO = new TaskDAO();
+        List<Task> tasks = taskDAO.getAllTasks();
+
+        if (tasks.isEmpty()) {
+            System.out.println("No tasks found in this collection.");
+            return;
+        }
+
+        String normalizedStatus = normalizeStatus(status);
+
+        System.out.println(
+                "Tasks in collection '" + Context.getActiveCollection().getName() + "':\n"
+        );
+
+        if (normalizedStatus != null) {
+            printTasksByStatus(tasks, normalizedStatus, formatLabel(normalizedStatus));
+            return;
+        }
+
+        printTasksByStatus(tasks, "todo", "Todo");
+        printTasksByStatus(tasks, "in_progress", "In Progress");
+        printTasksByStatus(tasks, "done", "Done");
+    }
+
+    // Helper methods
+    private String normalizeStatus(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+
+        String normalized = value.trim().toLowerCase();
+
+        if (!VALID_STATUSES.contains(normalized)) {
+            System.err.println("Invalid status. Use: todo, in_progress, done.");
+            return null;
+        }
+        return normalized;
+    }
+
+    private void printTasksByStatus(List<Task> tasks, String statusKey, String label) {
+        System.out.println("-- " + label + ":");
+
         boolean found = false;
         for (Task task : tasks) {
             if (statusKey.equalsIgnoreCase(task.getStatus())) {
-                String indented = task.toString()
-                        .replaceAll("(?m)^", "   ");
-                System.out.print(indented);
+                System.out.println("   " + task);
                 found = true;
             }
         }
+
         if (!found) {
-            System.out.println("\n   No tasks found.");
+            System.out.println("   No tasks found.");
         }
         System.out.println();
     }
 
+    private String formatLabel(String status) {
+        return switch (status) {
+            case "todo" ->
+                "Todo";
+            case "in_progress" ->
+                "In Progress";
+            case "done" ->
+                "Done";
+            default ->
+                status;
+        };
+    }
 }

@@ -218,13 +218,12 @@ public class TaskDAO {
         task.setId(rs.getInt("id"));
         task.setStatus(rs.getString("status"));
         task.setCollectionId(rs.getInt("collection_id"));
+        task.setCreatedAt(LocalDateTime.parse(rs.getString("created_at"), DATETIME));
 
         // Parse dates
         if (rs.getString("due_date") != null) {
             task.setDueDate(LocalDateTime.parse(rs.getString("due_date"), DATETIME));
         }
-
-        task.setCreatedAt(LocalDateTime.parse(rs.getString("created_at"), DATETIME));
 
         if (rs.getString("updated_at") != null) {
             task.setUpdatedAt(LocalDateTime.parse(rs.getString("updated_at"), DATETIME));
