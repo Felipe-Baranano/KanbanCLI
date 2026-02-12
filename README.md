@@ -35,6 +35,8 @@ To see all available commands and options:
     
 - `rename` – Rename a collection
 
+- `cleanup` - Remove expired tasks
+
 ## Rules and constraints
 
 - A collection name must be unique.
@@ -114,4 +116,10 @@ Delete all collections or tasks:
 ```
 kanban delete collection --all
 kanban delete task --all
+```
+
+Remove all expired tasks or expired tasks from a specific status:
+```
+kanban cleanup --all
+kanban cleanup --status done
 ```
